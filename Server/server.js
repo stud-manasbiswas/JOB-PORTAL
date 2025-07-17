@@ -1,6 +1,6 @@
 import './config/instrument.js'
 import express from 'express'
-
+import bodyParser from "body-parser";
 import cors from 'cors'
 import 'dotenv/config'
 import connectDb from './config/db.js'
@@ -15,6 +15,7 @@ await connectDb()
 
 // middlewares
 app.use(cors())
+app.use('/webhooks', bodyParser.raw({ type: 'application/json' }));
 app.use(express.json())
 
 // Routes
