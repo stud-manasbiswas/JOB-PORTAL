@@ -1,8 +1,25 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets/assets";
+import { useContext } from "react";
+import AppContext from "../Context/AppContext";
+import { useEffect } from "react";
 
 const Dashboard = () => {
+  const {companyData,setCompanyData , setCompanyToken} = useContext(AppContext)
+  // function to logout from the company
+  const logout = ()=>{
+    setCompanyToken(null);
+    localStorage.removeItem('companyToken')
+    setCompanyData(null)
+    navigate('/')
+  }
+  useEffect(()=>{
+    if(companyData){
+      navigate('/dashboard/manage-jobs')
+    }
+  },[companyData])
+
   const navigate = useNavigate();
 
   return (
@@ -11,21 +28,29 @@ const Dashboard = () => {
       <div className="shadow py-4">
         <div className="px-5 flex justify-between items-center">
           <img onClick={() => navigate("/")} src={assets.logo} alt="logo" className="cursor-pointer" />
-          <div className="flex items-center gap-3">
-            <p className="max-sm:hidden">Welcome, Manas</p>
+          {companyData && (
+            <div className="flex items-center gap-3">
+
+            
+
+            <p className="max-sm:hidden">Welcome, {companyData.name}</p>
             <div className="relative group">
               <img
                 className="w-8 h-8 border rounded-full object-cover"
-                src={assets.company_icon}
+                src={companyData.image}
                 alt="company"
               />
               <div className="absolute hidden group-hover:block top-full right-0 z-10 text-black rounded">
                 <ul className="bg-white rounded-md text-sm shadow-md">
-                  <li className="py-1 px-4 cursor-pointer hover:bg-gray-100">Logout</li>
+                  <li className="py-1 px-4 cursor-pointer hover:bg-gray-100" onClick={logout}>Logout</li>
                 </ul>
               </div>
             </div>
           </div>
+
+          )}
+         
+          
         </div>
       </div>
 

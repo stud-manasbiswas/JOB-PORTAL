@@ -1,30 +1,94 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AppContext from "../Context/AppContext";
 import Loading from "../Components/Loading";
 import NavBar from "../Components/NavBar";
-import { assets } from "../assets/assets/assets";
 import kConvert from "k-convert";
 import moment from "moment";
 import Jobcard from "../Components/Jobcard";
 import Footer from "../Components/Footer";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { useAuth } from "@clerk/clerk-react";
+import { assets } from "../assets/assets/assets";
 
 const ApplyJob = () => {
   const { id } = useParams();
+  const { getToken } = useAuth();
+
+  const navigate = useNavigate();
   const [jobData, setJobData] = useState(null);
+
+  const[isAlreadyApplied,setIsAlreadyApplied]=useState(false)
   const [isLoading, setIsLoading] = useState(true);
-  const { jobs } = useContext(AppContext);
+  const { jobs, backendUrl, userData, userApplications , fetchUserApplications} = useContext(AppContext);
+
+  const fetchJob = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/jobs/${id}`);
+      if (data.success) {
+        setJobData(data.job);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const applyHandler = async () => {
+  try {
+    if (!userData) {
+      return toast.error("Login to apply for jobs");
+    }
+
+    if (!userData.resume || userData.resume.trim() === "") {
+      toast.error("Upload resume to apply");
+      navigate("/applications");
+      return;
+    }
+
+    const token = await getToken();
+    const { data } = await axios.post(
+      `${backendUrl}/api/users/apply`,
+      { jobId: jobData._id },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Fix: added space
+        },
+      }
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+      fetchUserApplications()
+    } else {
+      toast.error(data.message);
+    }
+
+  } catch (error) {
+    console.error(error);
+    toast.error(error.message || "Something went wrong");
+  }
+};
+
+const checkAlreadyApplied = ()=>{
+  const hasApplied = userApplications.some(item=> item.jobId._id === jobData._id)
+  setIsAlreadyApplied(hasApplied)
+}
+
 
   useEffect(() => {
-    const fetchJob = () => {
-      const data = jobs.find((job) => job._id === id);
-      if (data) {
-        setJobData(data);
-      }
-      setIsLoading(false);
-    };
     fetchJob();
-  }, [id, jobs]);
+  }, [id]);
+
+  useEffect(()=>{
+    if(userApplications.length>0 && jobData){
+      checkAlreadyApplied()
+    }
+  },[jobData,userApplications,id])
 
   if (isLoading) return <Loading />;
 
@@ -55,11 +119,19 @@ const ApplyJob = () => {
                 </h1>
                 <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-4 text-sm text-gray-700">
                   <span className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-300 shadow-sm">
-                    <img src={assets.suitcase_icon} alt="" className="w-4 h-4" />
+                    <img
+                      src={assets.suitcase_icon}
+                      alt=""
+                      className="w-4 h-4"
+                    />
                     {jobData.companyId.name}
                   </span>
                   <span className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-300 shadow-sm">
-                    <img src={assets.location_icon} alt="" className="w-4 h-4" />
+                    <img
+                      src={assets.location_icon}
+                      alt=""
+                      className="w-4 h-4"
+                    />
                     {jobData.location}
                   </span>
                   <span className="inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border border-gray-300 shadow-sm">
@@ -75,8 +147,11 @@ const ApplyJob = () => {
             </div>
 
             <div className="text-center md:text-right">
-              <button className="px-6 py-2 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition">
-                Apply Now
+              <button
+                className="px-6 py-2 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition"
+                onClick={applyHandler}
+              >
+              {isAlreadyApplied ? 'Already Applied': 'Apply Now'}
               </button>
               <p className="mt-2 text-sm text-gray-600">
                 Posted {moment(jobData.date).fromNow()}
@@ -96,8 +171,11 @@ const ApplyJob = () => {
               className="text-gray-700 leading-relaxed space-y-4 [&>*:last-child]:mb-0"
               dangerouslySetInnerHTML={{ __html: jobData.description }}
             />
-            <button className="mt-6 mb-0 px-6 py-2 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition">
-              Apply Now
+            <button
+              className="mt-6 mb-0 px-6 py-2 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition"
+              onClick={applyHandler}
+            >
+           {isAlreadyApplied ? 'Already Applied': 'Apply Now'}
             </button>
           </div>
 
@@ -119,7 +197,7 @@ const ApplyJob = () => {
           </div>
         </div>
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import User from "../models/User.js";
 
 const ClerkWebhooks = async (req, res) => {
   try {
-    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET_RENDER);
+    const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
     const evt = wh.verify(req.body, {
       "svix-id": req.headers["svix-id"],
@@ -24,6 +24,7 @@ const ClerkWebhooks = async (req, res) => {
           image: data.image_url,
           resume: ' '
         };
+
         await User.create(userData);
         break;
       }

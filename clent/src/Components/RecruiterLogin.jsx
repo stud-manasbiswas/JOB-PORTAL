@@ -1,8 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
-import { assets } from "../assets/assets/assets";
+import { assets } from "../assets/assets/assets.js";
 import AppContext from "../Context/AppContext";
+import axios from 'axios';
+import {useNavigate}  from 'react-router-dom'
+import { toast } from "react-toastify";
 
 const RecruiterLogin = () => {
+
+  const navigate = useNavigate()
+
   const [state, setState] = useState("Login");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -10,13 +16,60 @@ const RecruiterLogin = () => {
 
   const [image, setImage] = useState(false);
   const [isTextDataSubmitted, setIsTextDataSubmitted] = useState(false);
-  const { setShowRecruiterLogin } = useContext(AppContext);
+  const { setShowRecruiterLogin ,backendUrl , setCompanyToken , setCompanyData} = useContext(AppContext);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
     if (state === "Sign Up" && !isTextDataSubmitted) {
-      setIsTextDataSubmitted(true);
+       return setIsTextDataSubmitted(true);
+    }
+    try {
+      if (state==='Login') {
+         const { data } = await axios.post(`${backendUrl}/api/company/login`, {
+    email,
+    password
+  });
+
+        if(data.success){
+          
+          setCompanyData(data.company)
+          setCompanyToken(data.token)
+          localStorage.setItem('companyToken',data.token)
+          setShowRecruiterLogin(false)
+          navigate('/dashboard')
+
+        }
+        else {
+          toast.error(data.message)
+        }
+
+
+      }
+      else{
+        const formData = new FormData()
+        formData.append('name',name)
+        formData.append('password',password)
+        formData.append('email',email)
+        console.log(image) 
+        formData.append('image',image)
+
+        const {data} = await axios.post(`${backendUrl}/api/company/register`, formData)
+
+        if(data.success){
+            
+          setCompanyData(data.company)
+          setCompanyToken(data.token)
+          localStorage.setItem('companyToken',data.token)
+          setShowRecruiterLogin(false)
+          navigate('/dashboard')
+        }
+        else{
+          toast.error(data.message)
+        }
+      }
+    } catch (error) {
+      toast.error(error.message)
     }
   };
 
@@ -38,7 +91,7 @@ const RecruiterLogin = () => {
         <p className="text-center text-gray-500 text-sm">
           Welcome back! Please sign in to continue
         </p>
-        {state === "Sign Up" && isTextDataSubmitted ? (
+        { state === "Sign Up" && isTextDataSubmitted ? (
           <>
             <div className="flex item-center gap-4 my-10">
               <label htmlFor="image">
