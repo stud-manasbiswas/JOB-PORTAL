@@ -55,7 +55,7 @@ JOB-PORTAL/
 ![User Applied Jobs](./Pictures/ul-applied.png)  
 
 ### 📋 Recruiter Dashboard  
-![Add Job](./Pictures/RL-Add_job.png)  
+![Add Job](./Pictures/ADDJOB.png)  
 ![Manage Jobs](./Pictures/RL-Manage-job.png)  
 ![View Applications](./Pictures/RL-view-Application.png)  
 
