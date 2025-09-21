@@ -44,7 +44,7 @@ JOB-PORTAL/
 
 ---
 
-## 📸 Screenshots  
+## 📸 Screenshots   
 
 ### 🔑 Authentication (Clerk Login)  
 ![Login Clerk](./Pictures/login-clerk.png)  
@@ -60,6 +60,7 @@ JOB-PORTAL/
 ![View Applications](./Pictures/RL-view-Application.png)  
 
 ---
+
 
 ## 🚀 Tech Stack  
 
